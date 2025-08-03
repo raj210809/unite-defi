@@ -1,0 +1,114 @@
+[
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "suiAsset",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "crossChainRecepient",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "maker",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "takerAsset",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "makingAmount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "takingAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "OrderVerified",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "orderHash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "maker",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "taker",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "makingAmount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "takingAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "OrderFilled",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          { "name": "salt", "type": "uint256" },
+          { "name": "maker", "type": "uint256" },
+          { "name": "receiver", "type": "uint256" },
+          { "name": "makerAsset", "type": "uint256" },
+          { "name": "takerAsset", "type": "uint256" },
+          { "name": "makingAmount", "type": "uint256" },
+          { "name": "takingAmount", "type": "uint256" },
+          { "name": "makerTraits", "type": "uint256" },
+          { "name": "crossChainRecepient", "type": "bytes32" },
+          { "name": "suiAsset", "type": "bytes32" }
+        ],
+        "name": "order",
+        "type": "tuple"
+      },
+      { "name": "r", "type": "bytes32" },
+      { "name": "vs", "type": "bytes32" },
+      { "name": "amount", "type": "uint256" },
+      { "name": "target", "type": "uint256" }
+    ],
+    "name": "fillOrder",
+    "outputs": [
+      { "name": "actualMakingAmount", "type": "uint256" },
+      { "name": "actualTakingAmount", "type": "uint256" },
+      { "name": "orderHash", "type": "bytes32" }
+    ],
+    "stateMutability": "payable",
+    "type": "function"
+  }
+]
