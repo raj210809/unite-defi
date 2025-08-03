@@ -61,7 +61,7 @@ export async function create(hashlock: number[], timelock: number, amount: bigin
 }
 
 
-export async function claim (escrowId : string , secret : string , keyPair : Ed25519Keypair) {
+export async function claim (escrowId : string , secret : string) {
   const tx = new Transaction();
 
   // Capture return values from moveCall
@@ -89,7 +89,7 @@ export async function claim (escrowId : string , secret : string , keyPair : Ed2
     },
   });
 
-  console.log("Transaction Result: ", result.effects?.created);
+  return result.transaction?.data
 }
 
 export async function refund (escrowId : string , keyPair : Ed25519Keypair) {

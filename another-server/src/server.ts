@@ -17,14 +17,19 @@ app.post("/create" , async (req , res) => {
   // 3. Convert to number[] for Sui (vector<u8>)
   const hashBytes = Array.from(toBeArray(hashHex))
 
-  const object_id = create(hashBytes, req.body.timelock , req.body.amount , req.body.suiAsset);
+  const object_id = await create(hashBytes, req.body.timelock , req.body.amount , req.body.suiAsset);
   
 
   // 4. Return only the secret
-  res.json({ secret });
+  res.json({ secret, object_id });
 
-  // Send only the secret
-  res.json({ secret });
+})
+
+app.post("/withdraw" , async (req , res) => {
+  const tx_on_sui = await claim(req.body.escrowId, req.body.secret);
+
+  // Return only the secret
+  res.json({ tx_on_sui });
 })
 
 app.listen(3000, () => {
