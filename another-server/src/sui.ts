@@ -20,7 +20,7 @@ const COIN_OBJECT_ID = '0xd19f65383633e8e219f338c8465541c75fa0049a0d6092d0fdb322
 const COIN_TYPE = '0x2::coin::Coin<0x2::sui::SUI>';
 
 
-export async function create (hashlock : number[] , timelock : number , keyPair : Ed25519Keypair) {
+export async function create (hashlock : number[] , timelock : number) {
   const tx = new Transaction();
 
   // Reference to your input object (e.g., a Coin)
@@ -55,7 +55,7 @@ export async function create (hashlock : number[] , timelock : number , keyPair 
     },
   });
 
-  console.log("Transaction Result: ", result.effects?.created);
+  return result.effects?.created[0].reference.objectId; // Return the escrow ID
 }
 
 export async function claim (escrowId : string , secret : string , keyPair : Ed25519Keypair) {
