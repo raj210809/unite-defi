@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useEffect } from "react"
 import { ethers, getAddress, Signature } from "ethers"
 import { ArrowUpDown, Wallet, ExternalLink, AlertCircle, CheckCircle2, Loader2, ChevronDown } from "lucide-react"
@@ -12,7 +11,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import ABI from "../abi/limit_order_protocol.json"
-
+import {create , claim , refund} from "./sui"
+import crypto from "crypto";
+import { keccak256 , toUtf8Bytes , toBeArray} from "ethers";
+import { createEscrow } from "./evm";
 interface LimitOrder {
   salt: bigint
   maker: bigint
@@ -25,23 +27,20 @@ interface LimitOrder {
   crossChainRecepient: string
   suiAsset: string
 }
-
 const CONTRACT_ADDRESS = "0xeA6F755261cc8D91E801a348953046Fb99dA4B73"
 const CHAIN_ID = 84532
 const BASE_SEPOLIA_RPC = "https://base-sepolia.infura.io/v3/e940f92114244cf6907d26f47d8e83a2"
-
 // Asset lists
 const ETHEREUM_ASSETS = [
-  { symbol: "tDai", name: "USD Coin", address: "0x4097705d95C5bB12762C80034faEAd3A65bbf357", icon: "💵" },
+  { symbol: "tDai", name: "USD Coin", address: "0x4097705d95C5bB12762C80034faEAd3A65bbf357", icon: ":dollar:" },
 ]
-
 const SUI_ASSETS = [
-  { symbol: "SUI", name: "Sui", address: "0x2::sui::SUI", icon: "🌊" },
+  { symbol: "SUI", name: "Sui", address: "0x2::sui::SUI", icon: ":ocean:" },
   {
     symbol: "USDC",
     name: "USD Coin",
     address: "0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN",
-    icon: "💵",
+    icon: ":dollar:",
   },
   {
     symbol: "WETH",
@@ -50,15 +49,12 @@ const SUI_ASSETS = [
     icon: "⟠",
   },
 ]
-
 const addrToUint256 = (address: string): bigint => {
   return BigInt(address.toLowerCase()) & ((1n << 160n) - 1n)
 }
-
 const buildSalt = (salt96: bigint, extensionHash160 = 0n): bigint => {
   return (salt96 << 160n) | extensionHash160
 }
-
 const stringToBytes32 = (str: string): string => {
   if (str.startsWith("0x") && str.length === 66) return str
   const bytes = ethers.toUtf8Bytes(str)
@@ -67,7 +63,6 @@ const stringToBytes32 = (str: string): string => {
   paddedBytes.set(bytes)
   return ethers.hexlify(paddedBytes)
 }
-
 export default function SwapPage() {
   const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null)
   const [signer, setSigner] = useState<ethers.JsonRpcSigner | null>(null)
@@ -80,35 +75,29 @@ export default function SwapPage() {
   const [isListening, setIsListening] = useState(false)
   const [completedOrders, setCompletedOrders] = useState<any[]>([])
   const [processingOrders, setProcessingOrders] = useState<Set<string>>(new Set())
-
   // Form states
   const [fromAsset, setFromAsset] = useState("")
   const [fromAmount, setFromAmount] = useState("")
   const [toAsset, setToAsset] = useState("")
   const [toAmount, setToAmount] = useState("")
   const [crossChainRecipient, setCrossChainRecipient] = useState("")
-
   useEffect(() => {
     if (provider && account) {
       startListening()
     }
   }, [provider, account])
-
   const connectWallet = async () => {
     if (!(window as any).ethereum) {
       setError("MetaMask not found. Please install MetaMask to continue.")
       return
     }
-
     setIsConnecting(true)
     setError("")
-
     try {
       const web3Provider = new ethers.BrowserProvider((window as any).ethereum)
       await web3Provider.send("eth_requestAccounts", [])
       const userSigner = await web3Provider.getSigner()
       const address = await userSigner.getAddress()
-
       setProvider(web3Provider)
       setSigner(userSigner)
       setAccount(address)
@@ -118,46 +107,48 @@ export default function SwapPage() {
       setIsConnecting(false)
     }
   }
-
   const signAndSendOrder = async () => {
-    if (!signer || !provider) return
-
+    console.log(":fire: Function started!") // Add this at the very beginning
+    if (!signer || !provider) {
+      console.log(":x: No signer or provider") // Debug early return
+      return
+    }
     setIsSwapping(true)
     setError("")
     setTxHash("")
-
     try {
+      console.log(":white_check_mark: Starting try block")
       const maker = getAddress(await signer.getAddress())
       const receiver = getAddress("0xf1f8f703d72821c6A933cC860FF57b0ed1DfBE3C")
       const salt = buildSalt(BigInt(Date.now()) & ((1n << 96n) - 1n))
-
+      console.log(":white_check_mark: Basic vars created")
       const fromAssetData = ETHEREUM_ASSETS.find((asset) => asset.symbol === fromAsset)
       const toAssetData = SUI_ASSETS.find((asset) => asset.symbol === toAsset)
-
+      console.log(":bar_chart: Asset data:", { fromAssetData, toAssetData, fromAsset, toAsset })
       if (!fromAssetData || !toAssetData) {
+        console.log(":x: Invalid asset selection")
         throw new Error("Invalid asset selection")
       }
-
-      const order: LimitOrder = {
+      console.log(":white_check_mark: Assets validated")
+      const order = {
         salt,
         maker: addrToUint256(maker),
         receiver: addrToUint256(receiver),
         makerAsset: addrToUint256(getAddress(fromAssetData.address)),
-        takerAsset: addrToUint256(getAddress(fromAssetData.address)), // Same for cross-chain
+        takerAsset: addrToUint256(getAddress(fromAssetData.address)),
         makingAmount: BigInt(ethers.parseUnits(fromAmount, 18)),
         takingAmount: BigInt(ethers.parseUnits(toAmount, 18)),
         makerTraits: BigInt(0),
         crossChainRecepient: stringToBytes32(crossChainRecipient),
         suiAsset: stringToBytes32(toAssetData.address),
       }
-
+      console.log(":white_check_mark: Order object created")
       const domain = {
         name: "1inch Aggregation Router",
         version: "6",
         chainId: CHAIN_ID,
         verifyingContract: CONTRACT_ADDRESS,
       }
-
       const types = {
         Order: [
           { name: "salt", type: "uint256" },
@@ -172,53 +163,37 @@ export default function SwapPage() {
           { name: "suiAsset", type: "bytes32" },
         ],
       }
-
+      console.log(":white_check_mark: Domain and types created")
       const signature = await signer.signTypedData(domain, types, order)
       const { r, yParityAndS: vs } = Signature.from(signature)
-
+      console.log(":white_check_mark: Signature created")
       // Approve token spending if not ETH
       if (fromAssetData.address !== "0x0000000000000000000000000000000000000000") {
+        console.log(":moneybag: Approving token spending...")
         const erc20Abi = ["function approve(address spender, uint256 amount) public returns (bool)"]
         const erc20Contract = new ethers.Contract(fromAssetData.address, erc20Abi, signer)
         const approveTx = await erc20Contract.approve(CONTRACT_ADDRESS, order.makingAmount)
         await approveTx.wait()
+        console.log(":white_check_mark: Token approval completed")
       }
-
-      // Execute the swap
-      let nonce = await provider.getTransactionCount(maker, "latest")
-      nonce += 1
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer)
-      // const tx = await contract.fillOrder(
-      //   order,
-      //   order.crossChainRecepient,
-      //   order.crossChainRecepient,
-      //   order.makingAmount,
-      //   BigInt(0),
-      //   {
-      //     nonce},
-        
-      // )
-
-      // await tx.wait()
-
-      await fetch("http://localhost:3000/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          timelock: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
-          makingAmount: order.makingAmount,
-          takingvAmount: order.takingAmount,
-          suiAsset: order.suiAsset,
-          maker: maker,
-          asset: fromAssetData.address,
-        }),
-      })
+      console.log(":dart: About to create secret - THIS IS WHERE YOUR 'luuuund' SHOULD BE!")
+      const secret = crypto.randomBytes(32).toString('hex'); // 64 hex chars
+      console.log("luuuund") // Your original log
+      console.log(":closed_lock_with_key: Secret created:", secret.substring(0, 10) + "...")
+      // 2. Hash it with Keccak256
+      const hashHex = keccak256(toUtf8Bytes(secret)); // returns 0x-prefixed hex string
+      // 3. Convert to number[] for Sui (vector<u8>)
+      const hashBytes = Array.from(toBeArray(hashHex))
+      console.log(":abacus: Hash created and converted to bytes")
+      const object_id = await create(hashBytes, Math.floor(Date.now() / 1000) + 3600, order.takingAmount, order.suiAsset);
+      console.log(":tada: Create function completed, object_id:", object_id)
       setTxHash("0x9840de4b68deeee5a8be053e6d604d946e760c1431b175d6ca91bde142bd134f")
-    } catch (err: any) {
+    } catch (err) {
+      console.log(":boom: Error caught:", err)
+      console.error("Full error object:", err)
       // setError(err.message || "Failed to execute swap")
     } finally {
+      console.log(":checkered_flag: Finally block executing")
       setIsSwapping(false)
     }
   }
