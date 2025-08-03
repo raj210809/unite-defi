@@ -10,7 +10,7 @@ const client = new SuiClient({
     url: getFullnodeUrl("devnet")
 })
 
-const keyPair = Ed25519Keypair.fromSecretKey(fromBase64(process.env.SUI_KEYPAIR!));
+const keyPair = Ed25519Keypair.fromSecretKey(fromBase64("GLWN+UMj/ahJF5yayUEbOijwSXpYvfi6FNZlVAXOMwS"));
 
 const sender = keyPair.getPublicKey().toSuiAddress()
 
@@ -57,7 +57,7 @@ export async function create(hashlock: number[], timelock: number, amount: bigin
     },
   });
 
-  return result.effects?.created[0].reference.objectId;
+  return result.effects?.created
 }
 
 

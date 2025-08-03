@@ -1,7 +1,7 @@
 import express from "express";
 import {create , claim , refund} from "./sui"
 import crypto from "crypto";
-import { keccak256 , toUtf8Bytes , toBeArray} from "ethers/src.ts";
+import { keccak256 , toUtf8Bytes , toBeArray} from "ethers";
 
 const app = express();
 

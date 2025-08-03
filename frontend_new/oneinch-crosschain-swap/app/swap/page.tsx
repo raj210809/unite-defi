@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import ABI from "../abi/new_abi.json"
+import ABI from "../abi/limit_order_protocol.json"
 
 interface LimitOrder {
   salt: bigint
@@ -32,10 +32,7 @@ const BASE_SEPOLIA_RPC = "https://base-sepolia.infura.io/v3/e940f92114244cf6907d
 
 // Asset lists
 const ETHEREUM_ASSETS = [
-  { symbol: "ETH", name: "Ethereum", address: "0x0000000000000000000000000000000000000000", icon: "⟠" },
-  { symbol: "USDC", name: "USD Coin", address: "0xA0b86a33E6417c8f2c8B4C5b8b8b8b8b8b8b8b8b", icon: "💵" },
-  { symbol: "USDT", name: "Tether", address: "0xdAC17F958D2ee523a2206206994597C13D831ec7", icon: "💰" },
-  { symbol: "WBTC", name: "Wrapped Bitcoin", address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599", icon: "₿" },
+  { symbol: "tDai", name: "USD Coin", address: "0x4097705d95C5bB12762C80034faEAd3A65bbf357", icon: "💵" },
 ]
 
 const SUI_ASSETS = [
