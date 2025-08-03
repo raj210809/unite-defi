@@ -17,7 +17,7 @@ app.post("/create" , async (req , res) => {
   // 3. Convert to number[] for Sui (vector<u8>)
   const hashBytes = Array.from(toBeArray(hashHex))
 
-  create(hashBytes, req.body.timelock)
+  const object_id = create(hashBytes, req.body.timelock , req.body.amount , req.body.suiAsset);
   
 
   // 4. Return only the secret

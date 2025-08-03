@@ -1,295 +1,58 @@
 [
   {
-    "type": "constructor",
-    "inputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "DOMAIN_SEPARATOR",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "ORDER_TYPEHASH",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "claim",
+    "anonymous": false,
     "inputs": [
       {
-        "name": "orderId",
-        "type": "bytes32",
-        "internalType": "bytes32"
+        "indexed": true,
+        "internalType": "address",
+        "name": "escrowAddress",
+        "type": "address"
       },
       {
-        "name": "secret",
-        "type": "bytes",
-        "internalType": "bytes"
-      },
-      {
-        "name": "signature",
-        "type": "bytes",
-        "internalType": "bytes"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "createOrder",
-    "inputs": [
-      {
-        "name": "orderId",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      },
-      {
-        "name": "token",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "taker",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "amount",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "hashlock",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      },
-      {
-        "name": "timelock",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "getOrder",
-    "inputs": [
-      {
-        "name": "orderId",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "tuple",
-        "internalType": "struct HashedTimelockEscrow.Order",
-        "components": [
-          {
-            "name": "token",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "maker",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "taker",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "amount",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "hashlock",
-            "type": "bytes32",
-            "internalType": "bytes32"
-          },
-          {
-            "name": "timelock",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "claimed",
-            "type": "bool",
-            "internalType": "bool"
-          },
-          {
-            "name": "refunded",
-            "type": "bool",
-            "internalType": "bool"
-          },
-          {
-            "name": "secret",
-            "type": "bytes",
-            "internalType": "bytes"
-          }
-        ]
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "orders",
-    "inputs": [
-      {
-        "name": "",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "token",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
+        "indexed": false,
+        "internalType": "address",
         "name": "maker",
-        "type": "address",
-        "internalType": "address"
+        "type": "address"
       },
       {
-        "name": "taker",
-        "type": "address",
-        "internalType": "address"
+        "indexed": false,
+        "internalType": "address",
+        "name": "asset",
+        "type": "address"
       },
       {
+        "indexed": false,
+        "internalType": "uint256",
         "name": "amount",
-        "type": "uint256",
-        "internalType": "uint256"
+        "type": "uint256"
       },
       {
+        "indexed": false,
+        "internalType": "bytes32",
         "name": "hashlock",
-        "type": "bytes32",
-        "internalType": "bytes32"
+        "type": "bytes32"
       },
       {
+        "indexed": false,
+        "internalType": "uint256",
         "name": "timelock",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "claimed",
-        "type": "bool",
-        "internalType": "bool"
-      },
-      {
-        "name": "refunded",
-        "type": "bool",
-        "internalType": "bool"
-      },
-      {
-        "name": "secret",
-        "type": "bytes",
-        "internalType": "bytes"
+        "type": "uint256"
       }
     ],
-    "stateMutability": "view"
+    "name": "EscrowCreated",
+    "type": "event"
   },
   {
-    "type": "function",
-    "name": "refund",
     "inputs": [
-      {
-        "name": "orderId",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
+      { "internalType": "address", "name": "maker", "type": "address" },
+      { "internalType": "contract IERC20", "name": "asset", "type": "address" },
+      { "internalType": "uint256", "name": "amount", "type": "uint256" },
+      { "internalType": "bytes32", "name": "hashlock", "type": "bytes32" },
+      { "internalType": "uint256", "name": "timelock", "type": "uint256" }
     ],
+    "name": "createEscrow",
     "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "event",
-    "name": "OrderClaimed",
-    "inputs": [
-      {
-        "name": "orderId",
-        "type": "bytes32",
-        "indexed": true,
-        "internalType": "bytes32"
-      },
-      {
-        "name": "secret",
-        "type": "bytes",
-        "indexed": false,
-        "internalType": "bytes"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "OrderCreated",
-    "inputs": [
-      {
-        "name": "orderId",
-        "type": "bytes32",
-        "indexed": true,
-        "internalType": "bytes32"
-      },
-      {
-        "name": "maker",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "taker",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
-      },
-      {
-        "name": "amount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "OrderRefunded",
-    "inputs": [
-      {
-        "name": "orderId",
-        "type": "bytes32",
-        "indexed": true,
-        "internalType": "bytes32"
-      }
-    ],
-    "anonymous": false
+    "stateMutability": "nonpayable",
+    "type": "function"
   }
 ]

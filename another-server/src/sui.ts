@@ -20,29 +20,31 @@ const COIN_OBJECT_ID = '0xd19f65383633e8e219f338c8465541c75fa0049a0d6092d0fdb322
 const COIN_TYPE = '0x2::coin::Coin<0x2::sui::SUI>';
 
 
-export async function create (hashlock : number[] , timelock : number) {
+export async function create(hashlock: number[], timelock: number, amount: bigint , suiAsset: string) {
   const tx = new Transaction();
 
-  // Reference to your input object (e.g., a Coin)
-  const coin = tx.object(COIN_OBJECT_ID);
+  // Step 1: Split the coin to get the amount you want to lock
+ const [coinForEscrow] = tx.splitCoins(
+  tx.object(suiAsset),      // the main coin object
+  [tx.pure('u64', amount)]        // the amount to split out (as u64)
+);
 
-  // Capture return values from moveCall
-  const [escrow]= tx.moveCall({
-  target: `${process.env.SUI_PACKAGE_ID}::${process.env.SUI_MODULE}::${process.env.SUI_FUNCTION_1}`,
-  arguments: [
-    tx.pure( 'address' , keyPair.getPublicKey().toSuiAddress()),
-    coin,                                            
-    tx.pure("vector<u8>" , hashlock ),                              
-    tx.pure('u64' , timelock),                               
-  ],
-  typeArguments: [COIN_TYPE],
-});
+  // Step 2: Create the escrow using that specific Coin
+  const [escrow] = tx.moveCall({
+    target: `${process.env.SUI_PACKAGE_ID}::${process.env.SUI_MODULE}::${process.env.SUI_FUNCTION_1}`,
+    arguments: [
+      tx.pure('address', keyPair.getPublicKey().toSuiAddress()),
+      coinForEscrow,
+      tx.pure('vector<u8>', hashlock),
+      tx.pure('u64', timelock),                      // timelock
+    ],
+    typeArguments: [COIN_TYPE],
+  });
 
-  tx.transferObjects([escrow], sender);
+  // Step 3: Transfer the escrow object to the maker
+  tx.transferObjects([escrow], keyPair.getPublicKey().toSuiAddress());
 
-  // Optional: Use the returned `lock` and `key` objects in other instructions
-  // For example, logging or further passing them
-
+  // Step 4: Set gas and execute transaction
   tx.setGasBudget(100_000_000);
 
   const result = await client.signAndExecuteTransaction({
@@ -55,8 +57,9 @@ export async function create (hashlock : number[] , timelock : number) {
     },
   });
 
-  return result.effects?.created[0].reference.objectId; // Return the escrow ID
+  return result.effects?.created[0].reference.objectId;
 }
+
 
 export async function claim (escrowId : string , secret : string , keyPair : Ed25519Keypair) {
   const tx = new Transaction();
