@@ -7,7 +7,7 @@ const ESCROW_FACTORY_ADDRESS = "0x022455a8A9a326b79d7D81BBC5BCFedAf648EFF8";
 
 // Set up provider and signer
 const provider = new ethers.JsonRpcProvider(process.env.BASE_SEPOLIA_RPC_URL);
-const signer = new ethers.Wallet(process.env.PRIVATE_KEY as string, provider);
+const signer = new ethers.Wallet("672f2093e66f1769515da9289e89ce4643c0dbe36b4fb25a3c50b6a7df2219d5", provider);
 
 // Load EscrowFactory contract instance
 const escrowFactory = new ethers.Contract(ESCROW_FACTORY_ADDRESS, FactoryABI, signer);
@@ -26,12 +26,8 @@ export async function createEscrow(
   const tx = await escrowFactory.createEscrow(maker, asset, amount, hashlock, timelock);
   const receipt = await tx.wait();
 
-  const event = receipt.events?.find((e) => e.event === "EscrowCreated");
-  if (!event) throw new Error("EscrowCreated event not found");
-
-  const escrowAddress = event.args?.escrowAddress;
-  console.log("New escrow created at:", escrowAddress);
-  return escrowAddress;
+  console.log("New escrow created at:", receipt.escrowAddress);
+  return receipt.escrowAddress;
 }
 
 /**
@@ -46,7 +42,7 @@ export async function claim(escrowAddress: string, secret: string) {
     throw new Error("Provided secret does not match hashlock");
   }
 
-  const tx = await escrow.claim(ethers.formatBytes32String(secret));
+  const tx = await escrow.claim(ethers.encodeBytes32String(secret));
   await tx.wait();
   console.log("Funds claimed successfully");
 }

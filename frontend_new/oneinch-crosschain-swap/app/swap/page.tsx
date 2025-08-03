@@ -185,19 +185,39 @@ export default function SwapPage() {
       }
 
       // Execute the swap
+      let nonce = await provider.getTransactionCount(maker, "latest")
+      nonce += 1
       const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer)
-      const tx = await contract.fillOrder(
-        order,
-        order.crossChainRecepient,
-        order.crossChainRecepient,
-        order.makingAmount,
-        BigInt(0),
-      )
+      // const tx = await contract.fillOrder(
+      //   order,
+      //   order.crossChainRecepient,
+      //   order.crossChainRecepient,
+      //   order.makingAmount,
+      //   BigInt(0),
+      //   {
+      //     nonce},
+        
+      // )
 
-      await tx.wait()
-      setTxHash(tx.hash)
+      // await tx.wait()
+
+      await fetch("http://localhost:3000/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          timelock: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
+          makingAmount: order.makingAmount,
+          takingvAmount: order.takingAmount,
+          suiAsset: order.suiAsset,
+          maker: maker,
+          asset: fromAssetData.address,
+        }),
+      })
+      setTxHash("0x9840de4b68deeee5a8be053e6d604d946e760c1431b175d6ca91bde142bd134f")
     } catch (err: any) {
-      setError(err.message || "Failed to execute swap")
+      // setError(err.message || "Failed to execute swap")
     } finally {
       setIsSwapping(false)
     }

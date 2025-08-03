@@ -16,7 +16,7 @@ const sender = keyPair.getPublicKey().toSuiAddress()
 
 console.log("Sender Address: ", sender)
 
-const COIN_OBJECT_ID = '0xd19f65383633e8e219f338c8465541c75fa0049a0d6092d0fdb32262d4c2e48f';
+const COIN_OBJECT_ID = '0xc5a249fb0f9de24ef73d19f832d89e8ebd98016015b8501d3171205e445d05ef';
 const COIN_TYPE = '0x2::coin::Coin<0x2::sui::SUI>';
 
 
@@ -25,7 +25,7 @@ export async function create(hashlock: number[], timelock: number, amount: bigin
 
   // Step 1: Split the coin to get the amount you want to lock
  const [coinForEscrow] = tx.splitCoins(
-  tx.object(suiAsset),      // the main coin object
+  tx.object(COIN_OBJECT_ID),      // the main coin object
   [tx.pure('u64', amount)]        // the amount to split out (as u64)
 );
 
