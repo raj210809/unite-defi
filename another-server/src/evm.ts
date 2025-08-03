@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
-import ABI from "./abi/escrow.json"
+import FactoryABI from "./abi/escrow-factory.json"
+import ESCROW_ABI from "./abi/escrow.json";
 
 // Replace with your actual deployed addresses
 const ESCROW_FACTORY_ADDRESS = "0x022455a8A9a326b79d7D81BBC5BCFedAf648EFF8";
@@ -9,7 +10,7 @@ const provider = new ethers.JsonRpcProvider(process.env.BASE_SEPOLIA_RPC_URL);
 const signer = new ethers.Wallet(process.env.PRIVATE_KEY as string, provider);
 
 // Load EscrowFactory contract instance
-const escrowFactory = new ethers.Contract(ESCROW_FACTORY_ADDRESS, ABI, signer);
+const escrowFactory = new ethers.Contract(ESCROW_FACTORY_ADDRESS, FactoryABI, signer);
 
 /**
  * Creates a new Escrow contract.
@@ -39,13 +40,13 @@ export async function createEscrow(
 export async function claim(escrowAddress: string, secret: string) {
   const escrow = new ethers.Contract(escrowAddress, ESCROW_ABI, signer);
   const hashlock = await escrow.hashlock();
-  const hashedSecret = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(secret));
+  const hashedSecret = ethers.keccak256(ethers.toUtf8Bytes(secret));
 
   if (hashlock !== hashedSecret) {
     throw new Error("Provided secret does not match hashlock");
   }
 
-  const tx = await escrow.claim(ethers.utils.formatBytes32String(secret));
+  const tx = await escrow.claim(ethers.formatBytes32String(secret));
   await tx.wait();
   console.log("Funds claimed successfully");
 }
